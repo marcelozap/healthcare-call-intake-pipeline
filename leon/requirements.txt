@@ -1,0 +1,23 @@
+# Core — the service runs with just these two.
+fastapi>=0.110
+uvicorn[standard]>=0.27
+
+# The model layer uses urllib from the standard library rather than the vendor
+# SDKs, so there is no anthropic/openai dependency here. Set ANTHROPIC_API_KEY
+# or OPENAI_API_KEY in the environment to switch the model paths on; without a
+# key everything falls back to the deterministic engines.
+
+# ── optional ────────────────────────────────────────────────────────────────
+# Machine learning report:  python -m app.ml.unreachable
+scikit-learn>=1.3
+pandas>=2.0
+
+# Audio transcription:  POST /api/transcribe
+# Runs locally, so audio never leaves the machine. openai-whisper pulls in
+# torch and is a large download — skip both lines if you do not need it.
+# python-multipart>=0.0.9
+# openai-whisper>=20231117
+
+# Tests
+pytest>=8.0
+httpx>=0.27

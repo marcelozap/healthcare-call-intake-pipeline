@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leon Care Outreach — Capture · Check · Ask</title>
+<style>
+  :root{
+    --red:#c8102e; --red-dk:#9c0c24; --red-sf:#fdeef1;
+    --ink:#141a21; --mut:#5f6b7a; --line:#e4e8ee; --bg:#f2f4f7;
+    --grn:#0d7a4a; --grn-sf:#e9f6ef; --amb:#b56a09; --amb-sf:#fdf4e5;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+  header{background:#fff;border-bottom:3px solid var(--red)}
+  .hbar{max-width:1560px;margin:0 auto;padding:14px 26px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .logo .mark{font-size:27px;font-weight:800;letter-spacing:-1.4px;color:var(--red);line-height:1}
+  .logo .sub{font-size:10.5px;font-weight:700;letter-spacing:2.4px;color:var(--mut);text-transform:uppercase}
+  .divider{width:1px;height:32px;background:var(--line)}
+  .appname{font-size:16.5px;font-weight:650;letter-spacing:-.3px}
+  .appname span{display:block;font-size:12px;color:var(--mut);font-weight:400;margin-top:1px}
+  .live{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .st{font-size:11px;font-weight:700;padding:5px 11px;border-radius:99px;border:1px solid var(--line);background:#fafbfc;color:var(--mut);white-space:nowrap}
+  .st.on{background:var(--grn-sf);border-color:#bfe3d0;color:var(--grn)}
+  .st.off{background:#f4f6f9;color:var(--mut)}
+  .st.warn{background:var(--amb-sf);border-color:#f0dcbb;color:var(--amb)}
+
+  .runbar{background:#fff;border-bottom:1px solid var(--line)}
+  .runbar .in{max-width:1560px;margin:0 auto;padding:14px 26px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  button.go{background:var(--red);color:#fff;border:0;border-radius:9px;padding:12px 24px;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+  button.go:hover{background:var(--red-dk)} button.go:disabled{opacity:.45;cursor:default}
+  button.gh{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:10px 15px;font:inherit;font-size:13px;cursor:pointer;font-weight:550;text-align:left;line-height:1.25}
+  button.gh:hover{border-color:#c0c8d4}
+  button.gh.on{border-color:var(--red);color:var(--red);background:var(--red-sf);font-weight:700}
+  .hint{font-size:13px;color:var(--mut)}
+
+  main{max-width:1560px;margin:0 auto;padding:20px 26px 40px}
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start}
+  @media(max-width:1200px){.three{grid-template-columns:1fr}}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:border-color .3s,box-shadow .3s}
+  .panel.live{border-color:var(--red);box-shadow:0 6px 24px rgba(200,16,46,.12)}
+  .panel.done{border-color:#bfe3d0}
+  .phead{padding:15px 19px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;background:#fafbfc}
+  .panel.live .phead{background:var(--red-sf)} .panel.done .phead{background:var(--grn-sf)}
+  .num{width:32px;height:32px;border-radius:9px;background:#eef1f5;color:var(--mut);display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
+  .panel.live .num{background:var(--red);color:#fff} .panel.done .num{background:var(--grn);color:#fff}
+  .ptitle{font-size:16.5px;font-weight:700;letter-spacing:-.3px;line-height:1.15}
+  .ptitle span{display:block;font-size:11.5px;font-weight:500;color:var(--mut);margin-top:2px}
+  .pstat{margin-left:auto;font-size:11px;font-weight:700;color:var(--mut);text-align:right}
+  .panel.done .pstat{color:var(--grn)} .panel.live .pstat{color:var(--red)}
+  .pbody{padding:17px 19px}
+
+  .lbl{font-size:10.5px;font-weight:750;letter-spacing:1.1px;text-transform:uppercase;color:var(--mut);margin:0 0 8px}
+  textarea.tr{font:inherit;font-size:14.5px;line-height:1.75;width:100%;min-height:104px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;resize:vertical;background:#fafbfc;color:var(--ink)}
+  textarea.tr:focus{outline:2px solid var(--red);outline-offset:-1px;border-color:transparent;background:#fff}
+  .fld{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .fld:last-child{border-bottom:0}
+  .fld .k{font-family:var(--mono);font-size:11px;color:var(--mut);width:138px;flex:none}
+  .fld .v{font-size:14px;font-weight:650;flex:1}
+  .fld .v.nul{color:var(--amb);font-weight:500;font-style:italic;font-size:13px}
+  .fld .c{font-family:var(--mono);font-size:11px;color:var(--mut)}
+  .fld .c.low{color:var(--amb);font-weight:700}
+  .src{font-size:11.5px;color:var(--mut);font-style:italic;margin:-4px 0 8px 148px}
+  .chk{display:flex;gap:10px;padding:11px 13px;border-radius:9px;margin-bottom:8px;background:#fafbfc;border-left:3px solid var(--line)}
+  .chk.high{border-left-color:var(--red);background:var(--red-sf)}
+  .chk.medium{border-left-color:var(--amb);background:var(--amb-sf)}
+  .chk .t{font-size:13.5px;font-weight:650}
+  .chk .d{font-size:12.5px;color:var(--mut);margin-top:2px}
+  .chk .a{font-size:12.5px;color:var(--grn);margin-top:4px;font-weight:600}
+  input.ask{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:9px;padding:11px 13px}
+  input.ask:focus{outline:2px solid var(--red);outline-offset:-1px;border-color:transparent}
+  .chip{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:12.5px;cursor:pointer;color:var(--mut);margin:0 6px 6px 0}
+  .chip:hover{border-color:var(--red);color:var(--red);background:var(--red-sf)}
+  .ansbox{background:var(--red-sf);border-left:3px solid var(--red);border-radius:0 10px 10px 0;padding:13px 15px;font-size:15px;margin-bottom:12px}
+  .rowbar{display:grid;grid-template-columns:1fr 74px;gap:8px;align-items:center;font-size:13px;margin-bottom:6px}
+  .rowbar .nm{display:flex;justify-content:space-between;gap:8px}
+  .trk{height:7px;background:#eef1f5;border-radius:99px;overflow:hidden;grid-column:1/-1;margin:-3px 0 4px}
+  .trk>span{display:block;height:100%;background:var(--red);border-radius:99px}
+  pre.code{background:#12171e;color:#e6edf3;padding:12px 14px;border-radius:9px;overflow:auto;font-size:11.5px;line-height:1.6;margin:0;font-family:var(--mono)}
+  details{border:1px solid var(--line);border-radius:9px;padding:10px 13px;background:#fafbfc;margin-top:12px}
+  summary{cursor:pointer;font-weight:600;font-size:12.5px;color:var(--mut)}
+  .tiny{font-size:12px;color:var(--mut)} .mono{font-family:var(--mono);font-size:11.5px}
+
+  .wide{max-width:1560px;margin:18px auto 0;padding:0 26px}
+  .box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:19px 22px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:13px;margin-top:13px}
+  .stat{border:1px solid var(--line);border-radius:11px;padding:13px 15px}
+  .stat .n{font-size:27px;font-weight:800;letter-spacing:-1.2px;font-variant-numeric:tabular-nums;line-height:1}
+  .stat .l{font-size:10.5px;font-weight:750;letter-spacing:.7px;text-transform:uppercase;color:var(--mut);margin-bottom:5px}
+  .stat .s{font-size:12px;color:var(--mut);margin-top:3px}
+  .stat.red{background:var(--red-sf);border-color:#f2c4cd}.stat.red .n{color:var(--red)}
+  .stat.grn{background:var(--grn-sf);border-color:#bfe3d0}.stat.grn .n{color:var(--grn)}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:12px}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);font-weight:700;background:#fafbfc}
+  .sev{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px}
+  .sev.high{background:var(--red-sf);color:var(--red)} .sev.medium{background:var(--amb-sf);color:var(--amb)}
+  footer{max-width:1560px;margin:0 auto;padding:20px 26px 44px;font-size:12px;color:var(--mut)}
+  .err{background:var(--red-sf);border:1px solid #f2c4cd;color:var(--red);border-radius:9px;padding:11px 14px;font-size:13px;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hbar">
+    <div class="logo"><div class="mark">LEON</div><div class="sub">Medical Centers</div></div>
+    <div class="divider"></div>
+    <div class="appname">Care Outreach<span>Capture &middot; Check &middot; Ask</span></div>
+    <div class="live" id="status"><span class="st">connecting&hellip;</span></div>
+  </div>
+</header>
+
+<div class="runbar"><div class="in">
+  <button class="go" id="go">Process a call</button>
+  <button class="gh" id="reset">Reset</button>
+  <span id="picker" style="display:flex;gap:7px;flex-wrap:wrap"></span>
+  <span class="hint" id="hint"></span>
+</div></div>
+
+<main>
+<div class="three">
+
+  <section class="panel" id="p1">
+    <div class="phead"><div class="num">1</div>
+      <div class="ptitle">Capture<span>The call becomes data</span></div>
+      <div class="pstat" id="s1">waiting</div></div>
+    <div class="pbody">
+      <p class="lbl">What the member said</p>
+      <textarea class="tr" id="transcript" spellcheck="false"></textarea>
+      <p class="lbl" style="margin-top:15px">What the service pulled out of it</p>
+      <div id="fields"><p class="tiny">Press <b>Process a call</b>.</p></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p2">
+    <div class="phead"><div class="num">2</div>
+      <div class="ptitle">Check<span>Rules decide who handles it</span></div>
+      <div class="pstat" id="s2">waiting</div></div>
+    <div class="pbody" id="checks"><p class="tiny">Waiting on capture.</p></div>
+  </section>
+
+  <section class="panel" id="p3">
+    <div class="phead"><div class="num">3</div>
+      <div class="ptitle">Ask<span>Questions over the database</span></div>
+      <div class="pstat" id="s3">ready</div></div>
+    <div class="pbody">
+      <input class="ask" id="q" placeholder="Ask about the campaign&hellip;" autocomplete="off">
+      <div style="margin-top:10px" id="chips"></div>
+      <div id="answer" style="margin-top:13px"></div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<div class="wide"><div class="box">
+  <div style="font-size:16.5px;font-weight:700;letter-spacing:-.3px">Review queue &mdash; live from the database</div>
+  <div class="tiny" style="margin-top:3px">Every member sits in exactly one bucket, and they sum to the cohort.</div>
+  <div class="grid" id="stats"></div>
+  <div style="overflow:auto;max-height:340px"><table id="queue"></table></div>
+</div></div>
+
+<div class="wide"><div class="box">
+  <div style="font-size:16.5px;font-weight:700;letter-spacing:-.3px">Safety rules and how often each fires</div>
+  <div class="tiny" style="margin-top:3px">A rule that never fires is unnecessary. A rule that fires on most of the cohort is a default, not a safety control.</div>
+  <div style="overflow:auto;max-height:360px"><table id="rules"></table></div>
+</div></div>
+
+<footer>
+  Synthetic data throughout &mdash; no real member information exists in this system. Served by FastAPI from SQLite; the queue,
+  the rules and every answer below come from live SQL queries against that database, not from anything hard-coded in this page.
+  Not diagnosis and not medical advice &mdash; the system routes work to staff, it does not replace them.
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   Frontend for the care-outreach service.
+
+   Every number on this page is fetched from the API. Nothing is computed here,
+   which is the point: if the database is empty the page says so rather than
+   quietly showing something plausible.
+   ══════════════════════════════════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function api(path, options) {
+  const response = await fetch(path, options);
+  if (!response.ok) {
+    let detail = `HTTP ${response.status}`;
+    try { detail = (await response.json()).detail || detail; } catch {}
+    throw new Error(detail);
+  }
+  return response.json();
+}
+const post = (path, body) => api(path, {
+  method: "POST", headers: {"content-type": "application/json"},
+  body: JSON.stringify(body),
+});
+
+const CALLS = [
+  {who: "Member A", label: "Spanish · transport + medication",
+   text: "Hola, soy Maria Alvarez. Prefiero que me llamen en español. Necesito transporte para mi cita. Tambien tengo una pregunta sobre mi medicamento, lisinopril. No recuerdo la hora exacta que lo tomo."},
+  {who: "Member B", label: "English · nothing wrong",
+   text: "Hi, this is Robert Klein. English is fine for me. I am just calling to confirm my appointment next Tuesday. I already have it on the calendar and my daughter drives me, so I do not need transportation."},
+  {who: "Member C", label: "Spanish · just discharged",
+   text: "Buenas, habla Elena Ramos. Me dieron de alta del hospital la semana pasada. No tengo cita de seguimiento todavia. Necesito transporte para llegar. Mi hija me puede ayudar si no contestan."},
+];
+let current = 0;
+
+const QUESTIONS = [
+  "How many members need transportation, by centre",
+  "Discharged with no follow-up, by centre",
+  "Contact rate by language",
+  "Medication questions by centre",
+  "Never reached by age band",
+  "Calls placed by centre",
+];
+
+/* ---------- status ---------- */
+async function loadStatus() {
+  try {
+    const h = await api("/api/health");
+    $("#status").innerHTML = [
+      h.database.connected
+        ? `<span class="st on">SQLite connected &middot; ${h.database.members} members</span>`
+        : `<span class="st warn">database not built &mdash; run: python run.py --rebuild</span>`,
+      h.model.configured
+        ? `<span class="st on">model: ${esc(h.model.provider)}</span>`
+        : `<span class="st off">model: not configured &mdash; deterministic engine</span>`,
+      h.transcription.available
+        ? `<span class="st on">whisper ready</span>`
+        : `<span class="st off">whisper not installed</span>`,
+      `<span class="st warn">SYNTHETIC &mdash; NO PHI</span>`,
+    ].join("");
+    return h.database.connected;
+  } catch (e) {
+    $("#status").innerHTML = `<span class="st warn">API unreachable &mdash; ${esc(e.message)}</span>`;
+    return false;
+  }
+}
+
+/* ---------- panels ---------- */
+function setPanel(n, state, label) {
+  $("#p" + n).className = "panel" + (state ? " " + state : "");
+  $("#s" + n).textContent = label;
+}
+
+function renderPicker() {
+  $("#picker").innerHTML = CALLS.map((c, i) =>
+    `<button class="gh${i === current ? " on" : ""}" data-i="${i}">${c.who}
+       <span class="tiny" style="display:block;font-weight:400">${c.label}</span></button>`).join("");
+  document.querySelectorAll("#picker button").forEach(b =>
+    b.onclick = () => { current = +b.dataset.i; reset(); });
+}
+
+function reset() {
+  [1, 2].forEach(n => setPanel(n, "", "waiting"));
+  $("#transcript").value = CALLS[current].text;
+  $("#fields").innerHTML = `<p class="tiny">Press <b>Process a call</b>.</p>`;
+  $("#checks").innerHTML = `<p class="tiny">Waiting on capture.</p>`;
+  $("#hint").innerHTML = `<b>${CALLS[current].who}</b> — ${CALLS[current].label}`;
+  $("#go").disabled = false;
+  renderPicker();
+}
+
+async function processCall() {
+  $("#go").disabled = true;
+  const transcript = $("#transcript").value.trim();
+  if (!transcript) { $("#go").disabled = false; return; }
+
+  setPanel(1, "live", "extracting…");
+  let result;
+  try {
+    result = await post("/api/extract", {transcript, use_model: true});
+  } catch (e) {
+    $("#fields").innerHTML = `<div class="err">Extraction failed: ${esc(e.message)}</div>`;
+    setPanel(1, "", "failed"); $("#go").disabled = false; return;
+  }
+
+  const found = result.fields.filter(f => f.value !== null);
+  $("#fields").innerHTML = result.fields.map(f => `
+    <div class="fld">
+      <span class="k">${esc(f.name)}</span>
+      ${f.value === null
+        ? `<span class="v nul">${f.source_text ? "stated as unknown" : "not discussed"}</span>`
+        : `<span class="v">${esc(f.value)}</span>`}
+      <span class="c ${f.below_threshold ? "low" : ""}">${f.confidence != null ? f.confidence.toFixed(2) : "—"}</span>
+    </div>
+    ${f.source_text ? `<div class="src">“${esc(f.source_text)}”</div>` : ""}`).join("")
+    + `<div class="tiny" style="margin-top:10px">
+         engine: <b>${esc(result.engine)}</b>${result.fallback_reason
+           ? ` <span style="color:var(--amb)">(model unavailable: ${esc(result.fallback_reason)} — fell back automatically)</span>` : ""}
+         &middot; overall confidence <b>${(result.confidence * 100).toFixed(0)}%</b>
+         &middot; threshold ${result.threshold}
+         ${result.held_for_review.length ? `&middot; held for review: <b>${result.held_for_review.join(", ")}</b>` : ""}
+       </div>`
+    + (result.rejected?.length ? `<details open><summary>${result.rejected.length} field(s) refused by the validator</summary>${
+         result.rejected.map(r => `<div class="chk high" style="margin-top:9px"><div><div class="t">${esc(r.field)}</div>
+           <div class="d">${esc(r.reason)}</div></div></div>`).join("")}</details>` : "");
+  setPanel(1, "done", `${found.length} fields · ${(result.confidence * 100).toFixed(0)}%`);
+
+  /* ---- panel 2: what the extraction means operationally ---- */
+  setPanel(2, "live", "checking…");
+  await sleep(220);
+  const get = name => (result.fields.find(f => f.name === name) || {}).value;
+  const checks = [];
+  if (get("recent_discharge") === true && get("has_appointment") !== true)
+    checks.push(["high", "Just discharged, no follow-up booked",
+      "Out of hospital with nothing on the calendar. This is where readmission risk concentrates.",
+      "Book the follow-up on this call."]);
+  if (get("transport_needed") === true)
+    checks.push(["high", "Transportation support needed",
+      "No ride on file. Booking the visit without the ride produces a no-show.",
+      "Arrange transport at the same time as the appointment."]);
+  if (get("medication_question") === true)
+    checks.push(["high", "Medication question — staff review",
+      "Clinical, and outside what an outreach coordinator should answer.",
+      "Route to the pharmacy line or care team."]);
+  if (get("medication_name") && get("medication_timing") === null)
+    checks.push(["medium", "Missing medication timing",
+      `${get("medication_name")} was named; the member could not recall when she takes it. Stored as explicitly unknown.`,
+      "Confirm the schedule against the chart."]);
+  if (get("caregiver_contact") === null)
+    checks.push(["medium", "Caregiver status unknown",
+      "Never discussed. Recorded as unknown — not as no.", "Ask directly on the next contact."]);
+  result.held_for_review.forEach(name =>
+    checks.push(["medium", `Low confidence: ${name}`,
+      `Below the ${result.threshold} write-through threshold, so it is held rather than committed.`,
+      "Confirm with the member before this is recorded."]));
+
+  $("#checks").innerHTML = (checks.length
+    ? checks.map(([sev, title, detail, action]) => `
+        <div class="chk ${sev}"><div><div class="t">${esc(title)}</div>
+          <div class="d">${esc(detail)}</div><div class="a">DO: ${esc(action)}</div></div></div>`).join("")
+    : `<div class="chk" style="border-left-color:var(--grn);background:var(--grn-sf)">
+         <div><div class="t" style="color:var(--grn)">Cleared — no action needed</div>
+         <div class="d">Nothing flagged, so this member closes automatically.
+         That is the control: if every call landed in the queue, the queue would be worthless.</div></div></div>`)
+    + `<div class="tiny" style="margin-top:11px">
+         <span class="mono">written_to_record_of_truth: ${result.written_to_record_of_truth}</span> — a person decides.</div>`;
+  setPanel(2, "done", checks.length ? `${checks.length} rules fired` : "no rules fired");
+  $("#go").disabled = false;
+}
+
+/* ---------- ask ---------- */
+async function askQuestion() {
+  const question = $("#q").value.trim();
+  if (!question) return;
+  $("#answer").innerHTML = `<p class="tiny">Querying…</p>`;
+  let a;
+  try {
+    a = await post("/api/ask", {question, use_model: true});
+  } catch (e) {
+    $("#answer").innerHTML = `<div class="err">${esc(e.message)}</div>`;
+    return;
+  }
+
+  const unit = a.metric.unit;
+  const fmt = v => unit === "percent" ? v.toFixed(1) + "%"
+              : unit === "rate" ? v.toFixed(1)
+              : Math.round(v).toLocaleString();
+  const key = a.plan.dimension;
+  const max = a.rows.length ? Math.max(...a.rows.map(r => Math.abs(r[a.plan.metric]))) || 1 : 1;
+
+  const headline = a.rows.length
+    ? `<b>${esc(a.rows[0][key])}</b> is highest on ${esc(a.metric.label.toLowerCase())} at
+       <b>${fmt(a.rows[0][a.plan.metric])}</b>, against <b>${fmt(a.total)}</b> overall.`
+    : `<b>${fmt(a.total)}</b> — ${esc(a.metric.label.toLowerCase())}${
+        a.plan.filters.length ? ` (${a.plan.filters.map(f => esc(f.val)).join(", ")})` : ""}.`;
+
+  $("#answer").innerHTML = `<div class="ansbox">${headline}</div>`
+    + a.rows.map(r => `
+        <div class="rowbar"><div class="nm"><span>${esc(r[key])}</span><b>${fmt(r[a.plan.metric])}</b></div>
+          <span class="tiny" style="text-align:right">n=${r.n}</span></div>
+        <div class="trk"><span style="width:${Math.abs(r[a.plan.metric]) / max * 100}%"></span></div>`).join("")
+    + `<div class="tiny" style="margin-top:9px">plan written by <b>${esc(a.plan.source)}</b>${
+         a.plan.rejected?.length ? ` &middot; <span style="color:var(--red)">${a.plan.rejected.length} element(s) refused by the validator</span>` : ""}</div>`
+    + `<details><summary>The SQL that ran against SQLite</summary>
+         <pre class="code" style="margin-top:9px">${esc(a.sql)}</pre>
+         <div class="tiny" style="margin-top:8px">${esc(a.metric.description)}
+         Reads <span class="mono">v_outreach_member</span> — the post-check view, not the raw feeds.</div>
+       </details>`;
+}
+
+/* ---------- queue and rules ---------- */
+async function loadQueue() {
+  const [all, flagged] = await Promise.all([
+    api("/api/members?limit=500"),
+    api("/api/members?needs_review=true&limit=500"),
+  ]);
+  const total = all.count, review = flagged.count;
+  const reached = all.members.filter(m => m.reached && !m.needs_review).length;
+  const progress = total - review - reached;
+
+  $("#stats").innerHTML = [
+    ["Need a person", review, `of ${total} members`, "red"],
+    ["Closed cleanly", reached, "reached, nothing flagged", "grn"],
+    ["Still in progress", progress, "safe to keep calling", ""],
+    ["Reconciles", `${review + reached + progress} / ${total}`,
+      review + reached + progress === total ? "nobody unaccounted for" : "MISMATCH",
+      review + reached + progress === total ? "grn" : "red"],
+  ].map(([l, n, s, c]) => `<div class="stat ${c}"><div class="l">${l}</div>
+      <div class="n">${n}</div><div class="s">${s}</div></div>`).join("");
+
+  $("#queue").innerHTML = `<thead><tr><th>Member</th><th>Centre</th><th>Age</th>
+      <th>Language</th><th>Why it needs a person</th></tr></thead><tbody>`
+    + flagged.members.slice(0, 40).map(m => `<tr>
+        <td><b>${esc(m.member_name)}</b><div class="tiny mono">${esc(m.member_id)}</div></td>
+        <td>${esc(m.clinic)}</td><td>${m.age}</td><td>${esc(m.language)}</td>
+        <td>${m.flags.map(f => `<div style="margin-bottom:3px">
+              <span class="sev ${f.severity}">${f.severity}</span> ${esc(f.detail)}</div>`).join("")}</td>
+      </tr>`).join("") + `</tbody>`;
+}
+
+async function loadRules() {
+  const r = await api("/api/rules");
+  const max = Math.max(...r.rules.map(x => x.fired), 1);
+  $("#rules").innerHTML = `<thead><tr><th>Severity</th><th>Rule</th><th>Fires on</th>
+      <th style="width:26%"></th><th>Why it exists</th></tr></thead><tbody>`
+    + r.rules.map(x => `<tr>
+        <td><span class="sev ${x.severity}">${x.severity}</span></td>
+        <td><b>${esc(x.title)}</b></td>
+        <td class="mono">${x.fired} · ${x.share_pct}%</td>
+        <td><div class="trk" style="margin:0"><span style="width:${x.fired / max * 100}%"></span></div></td>
+        <td class="tiny">${esc(x.rationale)}</td></tr>`).join("") + `</tbody>`;
+}
+
+/* ---------- boot ---------- */
+$("#chips").innerHTML = QUESTIONS.map(q => `<span class="chip">${q}</span>`).join("");
+document.querySelectorAll("#chips .chip").forEach(c =>
+  c.onclick = () => { $("#q").value = c.textContent; askQuestion(); });
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter") askQuestion(); });
+$("#go").onclick = processCall;
+$("#reset").onclick = reset;
+
+(async () => {
+  reset();
+  const ready = await loadStatus();
+  if (!ready) {
+    $("#answer").innerHTML = `<div class="err">No database. Run <span class="mono">python run.py --rebuild</span>.</div>`;
+    return;
+  }
+  $("#q").value = QUESTIONS[0];
+  await Promise.all([askQuestion(), loadQueue(), loadRules()]);
+})();
+</script>
+</body>
+</html>
